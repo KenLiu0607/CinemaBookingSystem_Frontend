@@ -1,0 +1,7 @@
+:root {
+    --el-bg-color: #1c1c1e;
+}
+
+html.dark {
+    background-color: var(--el-bg-color);
+}
