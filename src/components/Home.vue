@@ -19,7 +19,7 @@
     const movies = ref([]);
     async function fetchMovies() {
         try {
-            const response = await api.get(`/Movie`);
+            const response = await api.get(`/Home`);
             const { data } = response;
             movies.value = data.map((item) => ({
                 ...item,
