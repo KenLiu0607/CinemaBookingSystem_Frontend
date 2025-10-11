@@ -4,8 +4,8 @@ import Home from "@/components/Home.vue";
 import Booking from "@/components/Booking.vue";
 
 const routes = [
-    { path: "/", component: Home },
-    { path: "/Booking", component: Booking },
+    { path: "/", component: Home, meta: { breadcrumb: "首頁" } },
+    { path: "/Booking", component: Booking, meta: { breadcrumb: "線上預訂" } },
 ];
 
 const router = createRouter({

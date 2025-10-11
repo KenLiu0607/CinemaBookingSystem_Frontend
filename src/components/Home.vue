@@ -1,8 +1,8 @@
 <template>
-    <h1>
+    <div class="title">
         <el-icon><Timer /></el-icon>
         即將上映
-    </h1>
+    </div>
     <el-carousel :interval="5000" type="card" trigger="click" height="500PX" :autoplay="false">
         <el-carousel-item v-for="item in movies" :key="item.id">
             <h3>
@@ -46,7 +46,7 @@
 </script>
 
 <style scoped>
-    h1 {
+    .title {
         text-align: center;
     }
     .el-carousel__item h3 {
