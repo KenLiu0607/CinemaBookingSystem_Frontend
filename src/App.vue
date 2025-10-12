@@ -3,7 +3,7 @@
         <el-header class="header">
             <el-row justify="space-between">
                 <el-col :span="12">
-                    <div class="logo" @click="goHome">🎬 一個人影院</div>
+                    <span class="logo" @click="goHome">🎬 愛影院</span>
                 </el-col>
                 <el-col :span="12" class="actions-col">
                     <div class="actions">

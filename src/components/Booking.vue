@@ -47,11 +47,11 @@
                 <el-card class="booking-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
-                            <span>Seat Selection</span>
+                            <span>座位選擇</span>
                         </div>
                     </template>
 
-                    <div class="screen">Screen</div>
+                    <div class="screen">銀幕</div>
 
                     <div class="seat-grid">
                         <div v-for="row in seatRows" :key="row.label" class="seat-row">
