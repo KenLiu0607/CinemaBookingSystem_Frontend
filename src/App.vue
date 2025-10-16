@@ -47,7 +47,9 @@
             </el-row>
             <el-row>
                 <el-col>
-                    <RouterView></RouterView>
+                    <Suspense>
+                        <RouterView></RouterView>
+                    </Suspense>
                 </el-col>
             </el-row>
         </el-main>
@@ -60,7 +62,7 @@
 </template>
 
 <script setup>
-    import { onMounted, ref } from "vue";
+    import { onMounted, ref, Suspense } from "vue";
     import { Moon, Sunny, ArrowRight } from "@element-plus/icons-vue";
     import { useRouter } from "vue-router";
 

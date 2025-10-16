@@ -113,8 +113,41 @@
 </template>
 
 <script setup>
-    import { computed, reactive, ref, watch } from "vue";
+    import { computed, reactive, ref, watch, onMounted } from "vue";
     import { ElMessage } from "element-plus";
+    import api from "@/api/api.js";
+
+    const booking = ref([]);
+
+    async function fetchBooking() {
+        try {
+            const response = await api.get(`/Booking`);
+            const { data } = response;
+            return data.map((item) => ({
+                ...item,
+                path: `/movies/${item.fileName}`,
+            }));
+        } catch (error) {
+            if (error.response) {
+                // 後端有回應，但狀態碼非 2xx
+                console.error("Server error:", error.response.status, error.response.data);
+            } else if (error.request) {
+                // 請求有發出去，但沒回應（可能是網路問題）
+                console.error("No response from server:", error.request);
+            } else {
+                // 其他錯誤（例如程式碼錯誤）
+                console.error("Axios error:", error.message);
+            }
+            return []; // 失敗時至少回傳空陣列
+        }
+    }
+
+    booking.value = await fetchBooking();
+    onMounted(async () => {
+        // await Promise.all([fetchBooking()]);
+        console.log("全部載入完成");
+    });
+    console.log(booking.value);
 
     // 設定今日為日期基準，並清除時間以便比較
     const today = new Date();

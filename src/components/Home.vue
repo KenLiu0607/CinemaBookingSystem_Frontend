@@ -24,7 +24,7 @@
             const { data } = response;
             movies.value = data.map((item) => ({
                 ...item,
-                path: "/movies/" + item.fileName,
+                path: `/movies/${item.fileName}`,
             }));
         } catch (error) {
             if (error.response) {
