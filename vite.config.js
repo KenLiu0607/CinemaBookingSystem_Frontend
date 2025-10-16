@@ -6,6 +6,7 @@ import path from "path";
 export default defineConfig({
     plugins: [vue()],
     server: {
+        open: true,
         proxy: {
             "/api": {
                 target: "https://localhost:7244", // 你的 .NET API URL

@@ -6,7 +6,7 @@
     <el-carousel :interval="5000" type="card" trigger="click" height="500PX" :autoplay="false">
         <el-carousel-item v-for="item in movies" :key="item.id">
             <h3>
-                {{ item.releaseDate }}
+                {{ item.startDate }}
             </h3>
         </el-carousel-item>
     </el-carousel>
@@ -20,6 +20,7 @@
     async function fetchMovies() {
         try {
             const response = await api.get(`/Home`);
+            console.log("response", response);
             const { data } = response;
             movies.value = data.map((item) => ({
                 ...item,
