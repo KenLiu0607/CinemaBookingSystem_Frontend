@@ -20,7 +20,6 @@
     async function fetchMovies() {
         try {
             const response = await api.get(`/Home`);
-            console.log("response", response);
             const { data } = response;
             movies.value = data.map((item) => ({
                 ...item,
@@ -42,7 +41,6 @@
 
     onMounted(async () => {
         await Promise.all([fetchMovies()]);
-        console.log("全部載入完成");
     });
 </script>
 

@@ -4,7 +4,7 @@
             <el-col :xs="24" :lg="10">
                 <el-card class="booking-card" shadow="hover">
                     <div class="movie-header">
-                        <el-image :src="activeMovie.cover" fit="cover" class="movie-poster" lazy>
+                        <el-image :src="activeMovie.path" fit="cover" class="movie-poster" lazy>
                             <template #error>
                                 <div class="poster-fallback">No Image</div>
                             </template>
@@ -15,35 +15,31 @@
                                 <el-tag size="small" type="success">{{ activeMovie.rating }}</el-tag>
                                 <el-tag size="small">{{ activeMovie.genre }}</el-tag>
                             </div>
-                            <p class="movie-info"> {{ activeMovie.runtime }} min / {{ activeMovie.language }} </p>
+                            <p class="movie-info"> {{ activeMovie.startDate }} </p>
                         </div>
                     </div>
 
                     <el-divider />
-
-                    <el-form label-position="top" :model="formState" class="booking-form">
-                        <el-form-item label="Select Movie">
-                            <el-select v-model="formState.movieId" placeholder="Select a movie">
-                                <el-option v-for="movie in movies" :key="movie.id" :label="movie.title" :value="movie.id" />
-                            </el-select>
-                        </el-form-item>
-
-                        <el-form-item label="Date">
-                            <el-date-picker v-model="formState.date" type="date" placeholder="Select a date" :disabled-date="disableUnavailableDate" :clearable="false" />
-                        </el-form-item>
-
+                    <div>
+                        <el-select v-model="state" placeholder="選擇想觀看的電影">
+                            <el-option v-for="b in booking" :key="b.movieId" :label="b.title" :value="b.movieId" />
+                        </el-select>
+                    </div>
+                    <!-- <el-form label-position="top" :model="formState" class="booking-form"> -->
+                    <el-date-picker v-model="state" type="date" placeholder="Select a date" :disabled-date="disableUnavailableDate" :clearable="false" />
+                    <!-- 
                         <el-form-item label="Showtime">
                             <el-radio-group v-model="formState.showtime" class="showtime-group">
                                 <el-radio-button v-for="time in availableShowtimes" :key="time" :label="time">
                                     {{ time }}
                                 </el-radio-button>
                             </el-radio-group>
-                        </el-form-item>
-                    </el-form>
+                        </el-form-item> -->
+                    <!-- </el-form> -->
                 </el-card>
             </el-col>
 
-            <el-col :xs="24" :lg="14">
+            <!-- <el-col :xs="24" :lg="14">
                 <el-card class="booking-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
@@ -107,17 +103,15 @@
                         <span class="available-info"> Seats left: {{ availableSeatCount }} </span>
                     </div>
                 </el-card>
-            </el-col>
+            </el-col> -->
         </el-row>
     </div>
 </template>
 
 <script setup>
-    import { computed, reactive, ref, watch, onMounted } from "vue";
+    import { computed, reactive, ref, watch, onMounted, toRef } from "vue";
     import { ElMessage } from "element-plus";
     import api from "@/api/api.js";
-
-    const booking = ref([]);
 
     async function fetchBooking() {
         try {
@@ -141,7 +135,10 @@
             return []; // 失敗時至少回傳空陣列
         }
     }
+    // **從後端取得電影資料 fetchBooking** //
+    const response = await fetchBooking();
 
+<<<<<<< HEAD
     booking.value = await fetchBooking();
     onMounted(async () => {
         // await Promise.all([fetchBooking()]);
@@ -238,121 +235,159 @@
                     reserved: row.reserved.includes(seatId),
                 };
             }),
+=======
+    // 將資料轉成響應式
+    const booking = ref(
+        response.map((item) => ({
+            ...item,
+            path: `/movies/${item.fileName}`,
+>>>>>>> origin
         }))
     );
 
+    // 預設選取第一部電影
+    const state = toRef(booking.value[0]?.movieId ?? null);
     // 依照表單選擇取得當前顯示的電影
-    const activeMovie = computed(() => movies.value.find((movie) => movie.id === formState.movieId) ?? movies.value[0]);
-
-    // 目前電影可供選擇的放映場次
-    const availableShowtimes = computed(() => activeMovie.value?.showtimes ?? []);
-
-    // 以陣列形式回傳選取座位，方便模板綁定與訊息顯示
-    const selectedSeatsArray = computed(() => [...selectedSeats.value]);
-
-    // 計算剩餘可售座位數，避免重複計算
-    const availableSeatCount = computed(() => {
-        const total = seatBlueprint.reduce((sum, row) => sum + row.count, 0);
-        const reserved = seatBlueprint.reduce((sum, row) => sum + row.reserved.length, 0);
-        return Math.max(0, total - reserved - selectedSeats.value.length);
-    });
-
-    // 依目前票價與選取座位數量計算總金額
-    const totalPrice = computed(() => (activeMovie.value ? activeMovie.value.price * selectedSeats.value.length : 0));
-
-    // 將總金額格式化為新台幣字串
-    const formattedTotal = computed(() =>
-        totalPrice.value
-            ? totalPrice.value.toLocaleString("zh-TW", {
-                  style: "currency",
-                  currency: "TWD",
-                  maximumFractionDigits: 0,
-              })
-            : "TWD 0"
-    );
-
-    // 將選擇的日期格式化為易讀字串
-    const formattedDate = computed(() =>
-        formState.date
-            ? new Intl.DateTimeFormat("en-US", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  weekday: "short",
-              }).format(formState.date)
-            : "Select a date"
-    );
-
-    // 檢查表單是否完整且至少選擇一個座位
-    const canSubmit = computed(() => !!formState.movieId && !!formState.showtime && selectedSeats.value.length > 0);
-
-    // 切換電影時重設場次與座位選擇
-    watch(
-        () => formState.movieId,
-        () => {
-            if (!availableShowtimes.value.includes(formState.showtime)) {
-                formState.showtime = availableShowtimes.value[0] ?? "";
-            }
-            selectedSeats.value = [];
-        }
-    );
-
-    // 變更日期時清空座位選擇
-    watch(
-        () => formState.date,
-        () => {
-            selectedSeats.value = [];
-        }
-    );
+    const activeMovie = computed(() => booking.value.find((b) => b.movieId === state.value) ?? booking.value[0]);
 
     // 限制可選日期必須介於今天起的兩週內
     const disableUnavailableDate = (date) => {
         const compare = new Date(date);
         compare.setHours(0, 0, 0, 0);
-
-        const maxDate = new Date(today);
-        maxDate.setDate(maxDate.getDate() + 14);
-
-        return compare < today || compare > maxDate;
     };
+    console.log(disableUnavailableDate("2024-06-20"));
 
-    // 點擊座位按鈕時切換選取狀態，忽略已預訂座位
-    const toggleSeat = (seatId) => {
-        const seat = findSeat(seatId);
-        if (!seat || seat.reserved) {
-            return;
-        }
-        if (isSeatSelected(seatId)) {
-            selectedSeats.value = selectedSeats.value.filter((id) => id !== seatId);
-            return;
-        }
+    // // 座位藍圖：定義每排可售座位數與已預訂的座位
+    // const seatBlueprint = [
+    //     { label: "A", count: 8, reserved: ["A3", "A4"] },
+    //     { label: "B", count: 8, reserved: ["B2", "B6"] },
+    //     { label: "C", count: 10, reserved: ["C5", "C6", "C7"] },
+    //     { label: "D", count: 10, reserved: [] },
+    //     { label: "E", count: 12, reserved: ["E10", "E11", "E12"] },
+    // ];
 
-        selectedSeats.value = [...selectedSeats.value, seatId];
-    };
+    // // 使用者目前勾選的座位清單
+    // const selectedSeats = ref([]);
 
-    // 在座位資料中尋找指定座位物件
-    const findSeat = (seatId) => {
-        for (const row of seatRows.value) {
-            const seat = row.seats.find((item) => item.id === seatId);
-            if (seat) {
-                return seat;
-            }
-        }
-        return null;
-    };
+    // // 將座位藍圖轉換為畫面使用的座位列資料
+    // const seatRows = computed(() =>
+    //     seatBlueprint.map((row) => ({
+    //         label: row.label,
+    //         seats: Array.from({ length: row.count }, (_, index) => {
+    //             const seatId = `${row.label}${index + 1}`;
+    //             return {
+    //                 id: seatId,
+    //                 label: seatId,
+    //                 reserved: row.reserved.includes(seatId),
+    //             };
+    //         }),
+    //     }))
+    // );
 
-    // 判斷座位是否已被選取
-    const isSeatSelected = (seatId) => selectedSeats.value.includes(seatId);
+    // // 目前電影可供選擇的放映場次
+    // const availableShowtimes = computed(() => activeMovie.value?.showtimes ?? []);
 
-    // 送出預約時進行驗證並顯示提示訊息
-    const handleBooking = () => {
-        if (!canSubmit.value) {
-            ElMessage.warning("Please select a movie, date, showtime, and at least one seat.");
-            return;
-        }
+    // // 以陣列形式回傳選取座位，方便模板綁定與訊息顯示
+    // const selectedSeatsArray = computed(() => [...selectedSeats.value]);
 
-        ElMessage.success(`Booking confirmed: ${activeMovie.value.title} on ${formattedDate.value} at ${formState.showtime}. Seats: ${selectedSeatsArray.value.join(", ")}`);
-    };
+    // // 計算剩餘可售座位數，避免重複計算
+    // const availableSeatCount = computed(() => {
+    //     const total = seatBlueprint.reduce((sum, row) => sum + row.count, 0);
+    //     const reserved = seatBlueprint.reduce((sum, row) => sum + row.reserved.length, 0);
+    //     return Math.max(0, total - reserved - selectedSeats.value.length);
+    // });
+
+    // // 依目前票價與選取座位數量計算總金額
+    // const totalPrice = computed(() => (activeMovie.value ? activeMovie.value.price * selectedSeats.value.length : 0));
+
+    // // 將總金額格式化為新台幣字串
+    // const formattedTotal = computed(() =>
+    //     totalPrice.value
+    //         ? totalPrice.value.toLocaleString("zh-TW", {
+    //               style: "currency",
+    //               currency: "TWD",
+    //               maximumFractionDigits: 0,
+    //           })
+    //         : "TWD 0"
+    // );
+
+    // // 將選擇的日期格式化為易讀字串
+    // const formattedDate = computed(() =>
+    //     formState.date
+    //         ? new Intl.DateTimeFormat("en-US", {
+    //               year: "numeric",
+    //               month: "2-digit",
+    //               day: "2-digit",
+    //               weekday: "short",
+    //           }).format(formState.date)
+    //         : "Select a date"
+    // );
+
+    // // 檢查表單是否完整且至少選擇一個座位
+    // const canSubmit = computed(() => !!formState.movieId && !!formState.showtime && selectedSeats.value.length > 0);
+
+    // // 切換電影時重設場次與座位選擇
+    // watch(
+    //     () => formState.movieId,
+    //     () => {
+    //         if (!availableShowtimes.value.includes(formState.showtime)) {
+    //             formState.showtime = availableShowtimes.value[0] ?? "";
+    //         }
+    //         selectedSeats.value = [];
+    //     }
+    // );
+
+    // // 變更日期時清空座位選擇
+    // watch(
+    //     () => formState.date,
+    //     () => {
+    //         selectedSeats.value = [];
+    //     }
+    // );
+
+    //     const maxDate = new Date(today);
+    //     maxDate.setDate(maxDate.getDate() + 14);
+
+    //     return compare < today || compare > maxDate;
+    // };
+
+    // // 點擊座位按鈕時切換選取狀態，忽略已預訂座位
+    // const toggleSeat = (seatId) => {
+    //     const seat = findSeat(seatId);
+    //     if (!seat || seat.reserved) {
+    //         return;
+    //     }
+    //     if (isSeatSelected(seatId)) {
+    //         selectedSeats.value = selectedSeats.value.filter((id) => id !== seatId);
+    //         return;
+    //     }
+
+    //     selectedSeats.value = [...selectedSeats.value, seatId];
+    // };
+
+    // // 在座位資料中尋找指定座位物件
+    // const findSeat = (seatId) => {
+    //     for (const row of seatRows.value) {
+    //         const seat = row.seats.find((item) => item.id === seatId);
+    //         if (seat) {
+    //             return seat;
+    //         }
+    //     }
+    //     return null;
+    // };
+
+    // // 判斷座位是否已被選取
+    // const isSeatSelected = (seatId) => selectedSeats.value.includes(seatId);
+
+    // // 送出預約時進行驗證並顯示提示訊息
+    // const handleBooking = () => {
+    //     if (!canSubmit.value) {
+    //         ElMessage.warning("Please select a movie, date, showtime, and at least one seat.");
+    //         return;
+    //     }
+
+    //     ElMessage.success(`Booking confirmed: ${activeMovie.value.title} on ${formattedDate.value} at ${formState.showtime}. Seats: ${selectedSeatsArray.value.join(", ")}`);
+    // };
 </script>
 
 <style scoped>
