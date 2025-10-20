@@ -20,15 +20,25 @@
                     </div>
 
                     <el-divider />
-                    <div>
-                        <el-select v-model="state" placeholder="選擇想觀看的電影">
-                            <el-option v-for="b in booking" :key="b.movieId" :label="b.title" :value="b.movieId" />
-                        </el-select>
-                    </div>
+
+                    <el-form class="booking-form">
+                        <el-form-item label="選擇電影">
+                            <el-select v-model="movie">
+                                <el-option v-for="b in booking" :key="b.movieId" :label="b.title" :value="b.movieId" />
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="選擇大廳">
+                            <el-select v-model="hall">
+                                <el-option v-for="h in activeMovie.halls" :key="h.id" :label="h.name" :value="h.id" />
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+
                     <!-- <el-form label-position="top" :model="formState" class="booking-form"> -->
-                    <el-date-picker v-model="state" type="date" placeholder="Select a date" :disabled-date="disableUnavailableDate" :clearable="false" />
+                    <!-- <el-date-picker v-model="showDate" type="date" :default-value="new Date()" placeholder="Select a date" :disabled-date="disabledDate" :clearable="false" /> -->
                     <!-- 
-                        <el-form-item label="Showtime">
+                        <el-form-item label="Showtime">D
                             <el-radio-group v-model="formState.showtime" class="showtime-group">
                                 <el-radio-button v-for="time in availableShowtimes" :key="time" :label="time">
                                     {{ time }}
@@ -137,125 +147,33 @@
     }
     // **從後端取得電影資料 fetchBooking** //
     const response = await fetchBooking();
-
-<<<<<<< HEAD
-    booking.value = await fetchBooking();
-    onMounted(async () => {
-        // await Promise.all([fetchBooking()]);
-        console.log("全部載入完成");
-    });
-    console.log(booking.value);
-
-    // 設定今日為日期基準，並清除時間以便比較
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const mm = computed(() =>
-        booking.value.map((x) => ({
-            movieId: x.movieId,
-            path: `/movies/${x.fileName}`,
-            title: x.title,
-            director: x.director,
-            rating: x.rating,
-            castInfo: x.castInfo,
-            genre: x.genre,
-            fileName: x.fileName,
-            description: x.description,
-            startDate: x.startDate,
-            endDate: x.endDate,
-        }))
-    );
-
-    console.log("mm", mm.value);
-
-    // 模擬後端回傳的電影清單與票價資訊
-    const movies = ref([
-        {
-            id: "aurora",
-            title: "Aurora City",
-            rating: "PG-13",
-            genre: "Sci-Fi Adventure",
-            runtime: 126,
-            language: "English",
-            price: 280,
-            cover: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=600&q=80",
-            showtimes: ["13:15", "16:00", "19:30", "22:00"],
-        },
-        {
-            id: "celestial",
-            title: "Celestial Voyage",
-            rating: "PG",
-            genre: "Space Epic",
-            runtime: 141,
-            language: "English",
-            price: 320,
-            cover: "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?auto=format&fit=crop&w=600&q=80",
-            showtimes: ["12:40", "15:20", "18:10"],
-        },
-        {
-            id: "noir",
-            title: "Midnight Enigma",
-            rating: "R",
-            genre: "Mystery Thriller",
-            runtime: 109,
-            language: "Mandarin",
-            price: 260,
-            cover: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80",
-            showtimes: ["14:10", "17:45", "21:05"],
-        },
-    ]);
-
-    // 座位藍圖：定義每排可售座位數與已預訂的座位
-    const seatBlueprint = [
-        { label: "A", count: 8, reserved: ["A3", "A4"] },
-        { label: "B", count: 8, reserved: ["B2", "B6"] },
-        { label: "C", count: 10, reserved: ["C5", "C6", "C7"] },
-        { label: "D", count: 10, reserved: [] },
-        { label: "E", count: 12, reserved: ["E10", "E11", "E12"] },
-    ];
-
-    // 表單初始狀態：預設選取第一部電影、日期與場次
-    const formState = reactive({
-        movieId: movies.value[0]?.id ?? "",
-        date: new Date(today),
-        showtime: movies.value[0]?.showtimes[0] ?? "",
-    });
-
-    // 使用者目前勾選的座位清單
-    const selectedSeats = ref([]);
-
-    // 將座位藍圖轉換為畫面使用的座位列資料
-    const seatRows = computed(() =>
-        seatBlueprint.map((row) => ({
-            label: row.label,
-            seats: Array.from({ length: row.count }, (_, index) => {
-                const seatId = `${row.label}${index + 1}`;
-                return {
-                    id: seatId,
-                    label: seatId,
-                    reserved: row.reserved.includes(seatId),
-                };
-            }),
-=======
     // 將資料轉成響應式
-    const booking = ref(
+    const booking = reactive(
         response.map((item) => ({
             ...item,
             path: `/movies/${item.fileName}`,
->>>>>>> origin
         }))
     );
-
     // 預設選取第一部電影
-    const state = toRef(booking.value[0]?.movieId ?? null);
+    const movie = ref(booking[0]?.movieId ?? null);
     // 依照表單選擇取得當前顯示的電影
-    const activeMovie = computed(() => booking.value.find((b) => b.movieId === state.value) ?? booking.value[0]);
+    const activeMovie = computed(() => booking.find((b) => b.movieId === movie.value) ?? booking[0]);
+    const hall = ref(null);
+    watch(
+        () => activeMovie.value,
+        (movie) => {
+            hall.value = movie?.halls?.[0]?.id ?? null;
+        },
+        { immediate: true }
+    );
 
-    // 限制可選日期必須介於今天起的兩週內
-    const disableUnavailableDate = (date) => {
-        const compare = new Date(date);
-        compare.setHours(0, 0, 0, 0);
-    };
-    console.log(disableUnavailableDate("2024-06-20"));
+    // const disabledDate = (time) => {
+    //     const start = new Date("2024-10-10");
+    //     const end = new Date("2024-10-21");
+    //     return time >= start && time <= end; // 禁用這段期間
+    // };
+    // const showDate = ref(new Date());
+    // console.log(disabledDate("2024-10-20"));
 
     // // 座位藍圖：定義每排可售座位數與已預訂的座位
     // const seatBlueprint = [
@@ -443,11 +361,6 @@
         margin: 0;
         color: var(--el-text-color-secondary);
         font-size: 14px;
-    }
-
-    .booking-form {
-        display: grid;
-        gap: 16px;
     }
 
     .showtime-group {
