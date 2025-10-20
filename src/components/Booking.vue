@@ -152,6 +152,23 @@
     // 設定今日為日期基準，並清除時間以便比較
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const mm = computed(() =>
+        booking.value.map((x) => ({
+            movieId: x.movieId,
+            path: `/movies/${x.fileName}`,
+            title: x.title,
+            director: x.director,
+            rating: x.rating,
+            castInfo: x.castInfo,
+            genre: x.genre,
+            fileName: x.fileName,
+            description: x.description,
+            startDate: x.startDate,
+            endDate: x.endDate,
+        }))
+    );
+
+    console.log("mm", mm.value);
 
     // 模擬後端回傳的電影清單與票價資訊
     const movies = ref([

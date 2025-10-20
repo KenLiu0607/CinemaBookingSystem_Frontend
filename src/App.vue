@@ -3,7 +3,7 @@
         <el-header class="header">
             <el-row justify="space-between">
                 <el-col :span="12">
-                    <span class="logo" @click="goHome">🎬 愛影院</span>
+                    <span class="logo" @click="goHome">🎬 X6 影院</span>
                 </el-col>
                 <el-col :span="12" class="actions-col">
                     <div class="actions">
@@ -48,7 +48,12 @@
             <el-row>
                 <el-col>
                     <Suspense>
-                        <RouterView></RouterView>
+                        <template #default>
+                            <RouterView />
+                        </template>
+                        <template #fallback>
+                            <el-skeleton :rows="5" animated />
+                        </template>
                     </Suspense>
                 </el-col>
             </el-row>
@@ -80,6 +85,7 @@
     const route = useRouter();
     const goBooking = () => route.push("/Booking");
     const goHome = () => route.push("/");
+    // 麵包屑
     let breadcrumbs = ref([]);
     route.beforeEach((to, from) => {
         breadcrumbs.value = to.matched.filter((r) => r.meta?.breadcrumb).map((r) => ({ path: r.path, breadcrumb: r.meta.breadcrumb }));
