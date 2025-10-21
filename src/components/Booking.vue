@@ -23,14 +23,20 @@
 
                     <el-form class="booking-form">
                         <el-form-item label="選擇電影">
-                            <el-select v-model="movie">
-                                <el-option v-for="b in booking" :key="b.movieId" :label="b.title" :value="b.movieId" />
+                            <el-select v-model="selectedMovieId">
+                                <el-option v-for="m in movies" :key="m.movieId" :label="m.title" :value="m.movieId" />
                             </el-select>
                         </el-form-item>
 
                         <el-form-item label="選擇大廳">
-                            <el-select v-model="hall">
-                                <el-option v-for="h in activeMovie.halls" :key="h.id" :label="h.name" :value="h.id" />
+                            <el-select v-model="selectedHallId">
+                                <el-option v-for="h in halls" :key="h.id" :label="h.name" :value="h.id" />
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="選擇場次">
+                            <el-select v-model="selectedShowtimeId">
+                                <el-option v-for="s in showtimes" :key="s.id" :label="s.showtimeSlotName + '-' + s.showtimeSlotTime" :value="s.id" />
                             </el-select>
                         </el-form-item>
                     </el-form>
@@ -148,24 +154,42 @@
     // **從後端取得電影資料 fetchBooking** //
     const response = await fetchBooking();
     // 將資料轉成響應式
-    const booking = reactive(
+    const movies = reactive(
         response.map((item) => ({
             ...item,
             path: `/movies/${item.fileName}`,
         }))
     );
-    // 預設選取第一部電影
-    const movie = ref(booking[0]?.movieId ?? null);
-    // 依照表單選擇取得當前顯示的電影
-    const activeMovie = computed(() => booking.find((b) => b.movieId === movie.value) ?? booking[0]);
-    const hall = ref(null);
+
+    const selectedMovieId = ref(movies[0]?.movieId ?? null);
+    const activeMovie = computed(() => movies.find((m) => m.movieId === selectedMovieId.value) ?? movies[0]);
+    const halls = computed(() => activeMovie.value.halls ?? []);
+    const selectedHallId = ref(halls[0]?.id ?? null);
+    const activeHall = computed(() => halls.value.find((h) => h.id === selectedHallId.value) ?? halls.value[0]);
+    const showtimes = computed(() => activeHall.value.showtimes ?? []);
+    const selectedShowtimeId = ref(showtimes[0]?.id ?? null);
+    const activeShowtime = computed(() => showtimes.value.find((s) => s.id === selectedShowtimeId.value) ?? showtimes.value[0]);
+
     watch(
         () => activeMovie.value,
-        (movie) => {
-            hall.value = movie?.halls?.[0]?.id ?? null;
+        () => {
+            selectedHallId.value = halls.value[0]?.id ?? null;
+            selectedShowtimeId.value = showtimes.value[0]?.id ?? null;
         },
         { immediate: true }
     );
+    // // 預設選取第一部電影
+    // const movie = ref(booking[0]?.movieId ?? null);
+    // // 依照表單選擇取得當前顯示的電影
+    // const activeMovie = computed(() => booking.find((b) => b.movieId === movie.value) ?? booking[0]);
+    // const hall = ref(null);
+    // watch(
+    //     () => activeMovie.value,
+    //     (movie) => {
+    //         hall.value = movie?.halls?.[0]?.id ?? null;
+    //     },
+    //     { immediate: true }
+    // );
 
     // const disabledDate = (time) => {
     //     const start = new Date("2024-10-10");
